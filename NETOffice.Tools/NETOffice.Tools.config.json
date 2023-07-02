@@ -1,0 +1,15 @@
+{
+    "meta": {
+        "Version":"2.0"
+    },
+   "Logging":{
+      "Autostart":false,
+      "Configtype":"file",
+      "ConfigFilename":"log4net.xml",
+      "AliasEnabled": false
+   },
+   "CodeSigning":
+   {
+      "CodeSignerThumbprint":"5353AF0E0DE1F94F5DC7F37F4BC38434A795D7A3"
+   }
+}
