@@ -1,20 +1,69 @@
+# Module: NETOffice.Tools
+
+
+class EncyptedPSCredential {
+    hidden [string]$_Credential;
+    hidden [System.Security.Cryptography.X509Certificates.X509Certificate2]$_Certificate;
+
+    EncyptedPSCredential([pscredential]$Credential,[System.Security.Cryptography.X509Certificates.X509Certificate2] $certificate)  {
+        $this._Credential= $Credential
+        $this._Certificate = $certificate
+    }
+    [pscustomobject] GetEncrytedData() {
+        $rsa = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPublicKey($this._Certificate)
+        $bytesToEncrypt = [System.Text.Encoding]::UTF8.GetBytes($this._Credential.GetNetworkCredential().Password)
+        $encryptedBytes = $rsa.Encrypt($bytesToEncrypt, [System.Security.Cryptography.RSAEncryptionPadding]::OaepSHA1)
+        $encryptedPassword = [Convert]::ToBase64String($encryptedBytes)
+        $encryptedUsername = $this._Credential.GetNetworkCredential().UserName
+        return [pscustomobject]@{
+            EncryptedUsername = $encryptedUsername
+            EncryptedPassword = $encryptedPassword
+        }
+    }    
+}
+
+function ConvertTo-EncryptedText
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)] [String] $ClearText,
+        [Parameter(Mandatory = $true)] [System.Security.Cryptography.X509Certificates.X509Certificate2] $Certificate
+    )
+    $rsa = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPublicKey($Certificate)
+    $bytesToEncrypt = [System.Text.Encoding]::UTF8.GetBytes($ClearText)
+    $encryptedBytes = $rsa.Encrypt($bytesToEncrypt, [System.Security.Cryptography.RSAEncryptionPadding]::OaepSHA1)
+    $encryptedText = [Convert]::ToBase64String($encryptedBytes)
+    return $encryptedText
+}
+
+function ConvertFrom-EncryptedText
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)] [String] $EncryptedText,
+        [Parameter(Mandatory = $true)] [System.Security.Cryptography.X509Certificates.X509Certificate2] $Certificate
+    )
+    $rsa = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey($Certificate)
+    $encryptedBytes = [Convert]::FromBase64String($EncryptedText)
+    $decryptedBytes = $rsa.Decrypt($encryptedBytes, [System.Security.Cryptography.RSAEncryptionPadding]::OaepSHA1)
+    $decryptedText = [System.Text.Encoding]::UTF8.GetString($decryptedBytes)
+    return $decryptedText
+}
 
 function Start-Logging {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
-    param(
-        [string] $Filename = ''
-    )
+
     try {
-        $configFilename = Find-Configurationfile $Filename
-        Write-Debug "Filename $Filename"
+
         if ([string]::IsNullOrEmpty($configfilename)) {
             Throw "no log4net configuration file $filename found!" 
         }
         [void][Reflection.Assembly]::LoadFile("$ModulePath\log4net.dll")
         [log4net.LogManager]::ResetConfiguration()
-        [log4net.Config.XmlConfigurator]::Configure([URI]$configFilename)
+        
+        [log4net.Config.XmlConfigurator]::Configure([URI](invoke-expression "`"$($config.Logging.ConfigFilename)`""))
         $Global:Log4n = [log4net.LogManager]::GetLogger('root')
         $Log4n.Info('***** Logging started *****')
         $log4n.Info("Log configuration file : $configFilename")
@@ -39,11 +88,9 @@ function Stop-Logging {
 }
 
 function Write-LogDebug {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
-
-
     Param(
         [Parameter(position = 0, Mandatory = $true)] [string] $message
     )
@@ -55,14 +102,12 @@ function Write-LogDebug {
 }
 
 function Write-LogInfo {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
-
-
-    Param(
-        [Parameter(position = 0, Mandatory = $true)] [string] $message
-    )
+Param(
+    [Parameter(position = 0, Mandatory = $true)] [string] $message
+)
 
     if (!$log4n) {
         Start-Logging
@@ -71,14 +116,12 @@ function Write-LogInfo {
 }
 
 function Write-LogWarn {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
-
-
-    Param(
-        [Parameter(position = 0, Mandatory = $true)] [string] $message
-    )
+Param(
+    [Parameter(position = 0, Mandatory = $true)] [string] $message
+)
 
     if (!$log4n) {
         Start-Logging
@@ -87,7 +130,7 @@ function Write-LogWarn {
 }
 
 function Write-LogError {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
 
@@ -103,7 +146,7 @@ function Write-LogError {
 }
     
 function Write-LogFatal {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
 
@@ -117,9 +160,9 @@ function Write-LogFatal {
     }
     $log4n.fatal($message)
 }
-    
+
 function Read-Credentials {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
 
@@ -153,7 +196,7 @@ function Read-Credentials {
 }
 
 function Get-Choice {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
 
@@ -170,7 +213,7 @@ function Get-Choice {
 }
 
 function ConvertFrom-FileTime {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
 
@@ -187,7 +230,7 @@ function ConvertFrom-FileTime {
 #region Script Diagnostic Functions
 
 function Get-CurrentLineNumber {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
 
@@ -197,7 +240,7 @@ function Get-CurrentLineNumber {
 New-Alias -Name __LINE__ -Value Get-CurrentLineNumber -Description 'Returns the current line number in a PowerShell script file.' -Force
 
 function Get-CurrentFileName {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
 
@@ -208,7 +251,7 @@ New-Alias -Name __FILE__ -Value Get-CurrentFileName -Description 'Returns the na
 #endregion
 
 function Add-CodeSignature {
-    <#
+<#
 .EXTERNALHELP NETOffice.Tools-help.xml
 #>
 
@@ -247,13 +290,13 @@ function Remove-CodeSignature {
 }
 
 function Get-Encoding {
-    param
-    (
-        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [Alias('FullName')]
-        [string]
-        $Path
-    )
+param
+(
+    [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+    [Alias('FullName')]
+    [string]
+    $Path
+)
 
     process {
         $bom = New-Object -TypeName System.Byte[](4)
@@ -265,16 +308,11 @@ function Get-Encoding {
         $file.Dispose()
     
         $enc = [Text.Encoding]::ASCII
-        if ($bom[0] -eq 0x2b -and $bom[1] -eq 0x2f -and $bom[2] -eq 0x76) 
-        { $enc = [Text.Encoding]::UTF7 }
-        if ($bom[0] -eq 0xff -and $bom[1] -eq 0xfe) 
-        { $enc = [Text.Encoding]::Unicode }
-        if ($bom[0] -eq 0xfe -and $bom[1] -eq 0xff) 
-        { $enc = [Text.Encoding]::BigEndianUnicode }
-        if ($bom[0] -eq 0x00 -and $bom[1] -eq 0x00 -and $bom[2] -eq 0xfe -and $bom[3] -eq 0xff) 
-        { $enc = [Text.Encoding]::UTF32 }
-        if ($bom[0] -eq 0xef -and $bom[1] -eq 0xbb -and $bom[2] -eq 0xbf) 
-        { $enc = [Text.Encoding]::UTF8 }
+        if ($bom[0] -eq 0x2b -and $bom[1] -eq 0x2f -and $bom[2] -eq 0x76) { $enc = [Text.Encoding]::UTF7 }
+        if ($bom[0] -eq 0xff -and $bom[1] -eq 0xfe) { $enc = [Text.Encoding]::Unicode }
+        if ($bom[0] -eq 0xfe -and $bom[1] -eq 0xff) { $enc = [Text.Encoding]::BigEndianUnicode }
+        if ($bom[0] -eq 0x00 -and $bom[1] -eq 0x00 -and $bom[2] -eq 0xfe -and $bom[3] -eq 0xff) { $enc = [Text.Encoding]::UTF32 }
+        if ($bom[0] -eq 0xef -and $bom[1] -eq 0xbb -and $bom[2] -eq 0xbf) { $enc = [Text.Encoding]::UTF8 }
         
         [PSCustomObject]@{
             Encoding = $enc
@@ -311,30 +349,54 @@ function Find-Configurationfile {
         [string] $Filename
     )
 
-    if (Test-Path -Path "$env:appdata\$Filename" -PathType:Leaf) {
-        return "$env:appdata\$Filename"
-    } elseif (Test-Path -Path "$env:programdata\$Filename" -PathType:Leaf) {
-        return "$env:programdata\$Filename"
-    } elseif (Test-Path -Path "$ModulePath\$Filename" -PathType:Leaf) {
-        return "$ModulePath\$Filename"
-    }
-    return $null
+    $pathsToCheck = @(
+        $Filename,
+        "$env:programdata\sensu\config\$BaseFilename.config.json",
+        "$Global:BaseFileDirectory\$BaseFilename.config.json"
+    )
+
+    # W�hle den ersten existierenden Pfad aus
+    $configFile = $pathsToCheck | Where-Object { -not [string]::IsNullOrEmpty($_) -and (Test-Path -PathType Leaf -Path $_) } | Select-Object -First 1
+
+
+    return $configFile
 }
 
 
 ##############################
 # Module initialisation
 ##############################
-$ModuleName = [io.path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Source)
-$ModulePath = [io.path]::GetDirectoryName($MyInvocation.MyCommand.Source)
-$configFilename = Find-Configurationfile -Filename "$Modulename.config.json"
+$CallStack = Get-PSCallStack
+$CallStack|ConvertTo-Json -Depth 1|Write-Host
+$ModuleName = [io.path]::GetFileNameWithoutExtension($CallStack[0].ScriptName)
+$ModulePath = [io.path]::GetDirectoryName($CallStack[0].ScriptName)
+if ($null -ne $CallStack[1].ScriptName){
+    $ScriptPath = [io.path]::GetDirectoryName($CallStack[1].ScriptName)
+}
+else {
+    $ScriptPath = '.\'
+}
+Write-Host $ModuleName
+Write-Host $ModulePath
+Write-Host $ScriptPath
+
+# Look after configuration files
+
+$pathsToCheck = @(
+    "$ScriptPath\$ModuleName.config.json",
+    "$ModulePath\$ModuleName.config.json"
+)
+
 Write-Debug "Module Name $ModuleName"
 Write-Debug "Module Path $ModulePath"
 Write-Debug "Module configuration file $configFilename"
-if ([string]::IsNullOrEmpty($configFilename) -eq $false) {
+
+# W�hle den ersten existierenden Pfad aus
+$configFilename = $pathsToCheck | Where-Object { -not [string]::IsNullOrEmpty($_) -and (Test-Path -PathType Leaf -Path $_) } | Select-Object -First 1
+if ($null -ne $configFilename) {
     $script:config = Get-Content $configFilename | ConvertFrom-Json
 } else {
-    throw [System.IO.FileNotFoundException] "Configuration file $Modulename.config.json not found!`nDepending on your environment you must place it in %appdata% or %programdata%."
+    throw [System.IO.FileNotFoundException] "No Configuration file  found!`nDepending on your setup the file '$ModuleName.config.json' avaible in $ScripPath or $ModulePath is required."
 }
 if ($script:config.Logging.enable) {
     Start-Logging -Filename $script:config.Logging.configfile
@@ -350,45 +412,44 @@ if ($script:config.Logging.enable) {
     $Log4n.Info("Calling script path: $(Split-Path $MyInvocation.MyCommand.path)")
 }
 
-
 # SIG # Begin signature block
-# MIIHSgYJKoZIhvcNAQcCoIIHOzCCBzcCAQExDzANBglghkgBZQMEAgEFADB5Bgor
-# BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDTeUUTYIebOm4l
-# MCUcm95mhDhxf/ITDm26QbVGzK4yUaCCBDkwggQ1MIICnaADAgECAhAwsvZHii5x
-# hUTpwicUJt4MMA0GCSqGSIb3DQEBCwUAMCExHzAdBgNVBAMMFk5FVC5PZmZpY2Ug
-# Q29kZVNpZ25pbmcwIBcNOTkxMjMxMjMwMDAwWhgPMjA5OTEyMzAyMzAwMDBaMCEx
-# HzAdBgNVBAMMFk5FVC5PZmZpY2UgQ29kZVNpZ25pbmcwggGiMA0GCSqGSIb3DQEB
-# AQUAA4IBjwAwggGKAoIBgQC9Zu8QcBSfopZe1AA0g57HvoMNiylgOaD5u7OqevM+
-# L+ubo6akTZVAl6L7fRCn2uWP/I8yD5Epkva/WG9NZ2CzStu8Oew0efgAswJgAFch
-# lrAK7tEhrruOAIto6XT61XeKM/EsHdxDw2gEY+9n4TxWdzbsQ9D2QS8W2A94Ohbh
-# KMRGVrt4sTwYCfCWN0tzCu2vtVlysAlcYg1UQHtaTRWWUwKapIUKoHCjkOEkAWQy
-# r21kiuRMAanB8STtXFIyveudr9AZKLfp3EE0nwL/9UMujN5XPL3EBcJCXCq6SZut
-# 4JGoTNNn/PXNX3hEsAG+cooxhlT+7EBaFrTj9466hTKZBciskqs42lc8j48W5qBD
-# Wv2K2HZYtHerOCb9hKBQcnH7mkTYb19d8es/2XLxsAFKzATU7c0rpDJdwkk0OtHz
-# r2lJjHMrRRq0SwgNrlRUP2TY1uAiF2bb9PkoH8ms9gIUo2VE8Gd9toV8xU4Scv9e
-# 0+5fZMvTwRtXh+BuXjxolNECAwEAAaNnMGUwDgYDVR0PAQH/BAQDAgeAMBMGA1Ud
-# JQQMMAoGCCsGAQUFBwMDMB8GA1UdEQQYMBaBFHN1cHBvcnRAbmV0b2ZmaWNlLmV1
-# MB0GA1UdDgQWBBR/MXTPLvKYY22e96tSZC18IrKaDjANBgkqhkiG9w0BAQsFAAOC
-# AYEAfW2H+PvT1T7pNwRbhNqWynQ2e3oEpvRL3PxgUbk4wUoZiT/cRcKvN6aU2F+y
-# ykMejOEiaMm8WjDITmk4RM+3H0kdg971nkKAEr3hzgUkCX7O5l3H1v/0YgTKnMdZ
-# YOkem97/cNqJshnVi5cN6i+aV+LWmBwK1xEn2sqm3LLbjhUG2OfpcV4ZQT9f1k73
-# k4e40zLDWsC4GrdxujW3Fd6mwLFjLFtJZEZBwX0Q7yNtr2Y3xgG3U2951UhqQ9ht
-# 4FtEpYtGGKZLg6fbhQt0BZziRwYxFsK+++ezUxmwXoy84z5L6U15P/vds6YV0IO4
-# 0pntYy31r7h6Hr49LYEvlk5KQjmPYErgKq/IYzqO7nWAvwGxhrFCxcMVntcyeByl
-# zVvc40OXI88+VLnW0AupeLkhAUboWMx39IOIdIzYmIFQykXO4wdxXBUzdgXft2nz
-# ucqdlUBb57t/ZuVX1dAECobV5OpUsyRxqlO7q9hZx1Kb5nMr5zDkRznErPGjBWR7
-# TtIxMYICZzCCAmMCAQEwNTAhMR8wHQYDVQQDDBZORVQuT2ZmaWNlIENvZGVTaWdu
-# aW5nAhAwsvZHii5xhUTpwicUJt4MMA0GCWCGSAFlAwQCAQUAoIGEMBgGCisGAQQB
-# gjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYK
-# KwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwLwYJKoZIhvcNAQkEMSIEIIP2ThY8
-# ofb+Nb5DTRSOfM5KXwCiJHHs/d8VeaH0+3+aMA0GCSqGSIb3DQEBAQUABIIBgEvb
-# icjcp/B6glWTO8f6MYmuGc7XcVDZ7F8Su++n6AEdVCH3r1xIZPTWAVtmOsXu8O/B
-# 3oPDC3K0eyWtJb9pIhSkO0jkqZAEYgpuKWx/0IcJiRlcjT1I0Q8cgbCQHrN8Q3Cd
-# svKyuewovQWCisAQS2UKZGR+HHdGcunVu72Kksp2jkViBn+Ome4GkXJUesk9RP+I
-# v6JWkK9Cl+g/w/H5HktexQszYha0k+ZlTaL5CuW17lR8UKXDiIuMHvYLuiOGmleD
-# SlBu5Mo1pk/znp+UbgV8pWmfIXj8LvVyTHC/Y5TJj0Gn0C/uDQnzeleTqKyQ+42G
-# WTe9q+3rm1CiskwyaHpGWN99KBq2h79MF1q0qbjQEtkM8VT9gZ8avLSnq3s0cTc4
-# 7VE3GelU7RAvOMake02T9ntlDraUAveq5pX4ySf3FpTyhlu5ZjOmL0pFpvRZdT1x
-# PgOUVTGiKq1KYEJBFNOXhDJMw454asUxfEif+9QC7bYualdx9C7+rMI2/FsAfA==
+# MIIHJQYJKoZIhvcNAQcCoIIHFjCCBxICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUaOvm7/Leo0fXooI1AZeSk1ye
+# NfWgggQ5MIIENTCCAp2gAwIBAgIQMLL2R4oucYVE6cInFCbeDDANBgkqhkiG9w0B
+# AQsFADAhMR8wHQYDVQQDDBZORVQuT2ZmaWNlIENvZGVTaWduaW5nMCAXDTk5MTIz
+# MTIzMDAwMFoYDzIwOTkxMjMwMjMwMDAwWjAhMR8wHQYDVQQDDBZORVQuT2ZmaWNl
+# IENvZGVTaWduaW5nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAvWbv
+# EHAUn6KWXtQANIOex76DDYspYDmg+buzqnrzPi/rm6OmpE2VQJei+30Qp9rlj/yP
+# Mg+RKZL2v1hvTWdgs0rbvDnsNHn4ALMCYABXIZawCu7RIa67jgCLaOl0+tV3ijPx
+# LB3cQ8NoBGPvZ+E8Vnc27EPQ9kEvFtgPeDoW4SjERla7eLE8GAnwljdLcwrtr7VZ
+# crAJXGINVEB7Wk0VllMCmqSFCqBwo5DhJAFkMq9tZIrkTAGpwfEk7VxSMr3rna/Q
+# GSi36dxBNJ8C//VDLozeVzy9xAXCQlwqukmbreCRqEzTZ/z1zV94RLABvnKKMYZU
+# /uxAWha04/eOuoUymQXIrJKrONpXPI+PFuagQ1r9ith2WLR3qzgm/YSgUHJx+5pE
+# 2G9fXfHrP9ly8bABSswE1O3NK6QyXcJJNDrR869pSYxzK0UatEsIDa5UVD9k2Nbg
+# Ihdm2/T5KB/JrPYCFKNlRPBnfbaFfMVOEnL/XtPuX2TL08EbV4fgbl48aJTRAgMB
+# AAGjZzBlMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDAzAfBgNV
+# HREEGDAWgRRzdXBwb3J0QG5ldG9mZmljZS5ldTAdBgNVHQ4EFgQUfzF0zy7ymGNt
+# nverUmQtfCKymg4wDQYJKoZIhvcNAQELBQADggGBAH1th/j709U+6TcEW4Talsp0
+# Nnt6BKb0S9z8YFG5OMFKGYk/3EXCrzemlNhfsspDHozhImjJvFowyE5pOETPtx9J
+# HYPe9Z5CgBK94c4FJAl+zuZdx9b/9GIEypzHWWDpHpve/3DaibIZ1YuXDeovmlfi
+# 1pgcCtcRJ9rKptyy244VBtjn6XFeGUE/X9ZO95OHuNMyw1rAuBq3cbo1txXepsCx
+# YyxbSWRGQcF9EO8jba9mN8YBt1NvedVIakPYbeBbRKWLRhimS4On24ULdAWc4kcG
+# MRbCvvvns1MZsF6MvOM+S+lNeT/73bOmFdCDuNKZ7WMt9a+4eh6+PS2BL5ZOSkI5
+# j2BK4CqvyGM6ju51gL8BsYaxQsXDFZ7XMngcpc1b3ONDlyPPPlS51tALqXi5IQFG
+# 6FjMd/SDiHSM2JiBUMpFzuMHcVwVM3YF37dp87nKnZVAW+e7f2blV9XQBAqG1eTq
+# VLMkcapTu6vYWcdSm+ZzK+cw5Ec5xKzxowVke07SMTGCAlYwggJSAgEBMDUwITEf
+# MB0GA1UEAwwWTkVULk9mZmljZSBDb2RlU2lnbmluZwIQMLL2R4oucYVE6cInFCbe
+# DDAJBgUrDgMCGgUAoHgwGAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG
+# 9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIB
+# FTAjBgkqhkiG9w0BCQQxFgQUYIv+CFln/7xKB0T4gsifR3BBYYUwDQYJKoZIhvcN
+# AQEBBQAEggGAoxYj1QPMRGFP364AUxEADQqI15hNXW8WGvfvBrY+neKoTxIFi0vk
+# GFg0sVkvlZLGxTp0lcomNVeDbUcnm4XtUnu89LfQniQDIHI+VtD781N/K3jqo1dJ
+# hivf0xZpM77Y69TYnk4EQuFv0XEVzdbSbA3t+3ILZDhVTpDS5lRLrbiKuaY8y8z0
+# 7utZWNlbrq17hVf/kJDwTsBAG5q85rjNYFoY1/29TVNQm0FMb0HOXcqVgdqJnBvE
+# ndRm+YrwYcxOZr5TJ0+BRrHKnBox79MYtqhbDCFotM9uKGicAEu2OnRpOfQ1tOA+
+# +Kvv71lCJ5zLDMCeuMQ6wo6dwOcM0sHJnS3eSjl+uAgBEDreRcMfHTWa42X+0FGs
+# 3SmdaVcK8n2X/o126keSt5xEoEmUpSmNTpFpxUqn5R+fN/GoT1z8ywArnZ/Wioqc
+# dXX00ULVuBNFFfD5uxmzFiWdjBbw+aFqsogW3F7muskep3XdUTbJNwCE63Qqddzb
+# pU2o1aBtZmgO
 # SIG # End signature block
