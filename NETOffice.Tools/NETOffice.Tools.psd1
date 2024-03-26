@@ -27,10 +27,10 @@ Author = 'Marc Seguin'
 CompanyName = 'NET.Office GmbH'
 
 # Copyright statement for this module
-Copyright = '(c) 2023 NET.Office GmbH. All rights reserved.'
+Copyright = '(c) 2024 NET.Office GmbH. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'Collection of helpfull functions and cmdlets.'
+Description = 'Collection of helpful functions and cmdlets.'
 
 # Minimum version of the Windows PowerShell engine required by this module
 # PowerShellVersion = ''
