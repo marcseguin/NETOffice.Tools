@@ -36,6 +36,14 @@ function ConvertTo-EncryptedText
     return $encryptedText
 }
 
+function Read-Certificate {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)] [String] $FilePath
+    )
+    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($FilePath)
+    return $cert
+}
 function ConvertFrom-EncryptedText
 {
     [CmdletBinding()]

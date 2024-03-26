@@ -74,7 +74,7 @@ FunctionsToExport = 'Start-Logging', 'Stop-Logging', 'Write-LogDebug', 'Write-Lo
                'Get-Choice', 'ConvertFrom-FileTime', 'Get-CurrentLineNumber', 
                'Get-CurrentFileName', 'Add-CodeSignature', 
                'Export-SignerCertificate', 'Get-Encoding', 'ConvertTo-EncryptedText', 
-               'ConvertFrom-EncryptedText'
+               'ConvertFrom-EncryptedText','Read-Certificate'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
