@@ -2,15 +2,8 @@
 
 NET.Office Tools is a collection of helpful powershell functions put into a module.
 
-For more details look to the [NET.Office Tools documentation](wiki)
-
-## Table of Contents
-
-- [Installation](#installation)
-- [Provided Functions](#provided-functions)
+For more details look to the [NET.Office Tools documentation](../../wiki/NET.Office-Tools-documentation)
 
 ## Installation
 
-Currently the easiest way is to copy the subdirectory **NET.Office Tools** into your powershell module directory (e.g. `%ProgramFiles%\WindowsPowerShell\Modules`).
-
-
+Currently the easiest way is to copy the subdirectory **NET.Office Tools** to one your powershell module directory (e.g. `%ProgramFiles%\WindowsPowerShell\Modules`).
