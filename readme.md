@@ -13,10 +13,11 @@ Currently the easiest way is to copy the subdirectory **NET.Office Tools** into 
 
 ## Provided functions
 The module provides functions for various usage
-- [Cryptograhical functions](crypto.md)
-- [Logging functions](diagnostic.md) 
-- [Diagnostic functions](diagnostic.md)
-- [File functions](file.md)
+- [Cryptograhical functions](docs/crypto.md)
+- [Logging functions](docs/logging.md) 
+- [Diagnostic functions](docs/diagnostic.md)
+- [File functions](docs/file.md)
+- [Utility functions](docs/file.md)
 
 
 
