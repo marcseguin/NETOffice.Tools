@@ -6,4 +6,4 @@ For more details look to the [NET.Office Tools documentation](../../wiki/)
 
 ## Installation
 
-Currently the easiest way is to copy the subdirectory **NET.Office Tools** to one your powershell module directory (e.g. `%ProgramFiles%\WindowsPowerShell\Modules`).
+Currently the easiest way is to copy the subdirectory **NET.Office Tools** to one your powershell module directories (e.g. `%ProgramFiles%\WindowsPowerShell\Modules`).
