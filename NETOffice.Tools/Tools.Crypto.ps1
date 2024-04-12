@@ -38,10 +38,10 @@ function Read-Certificate {
         $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($FilePath)
     }
     else {
-        $Base64Certificate = $Base64Certificate.Replace('-----BEGIN CERTIFICATE-----', '')
-        $Base64Certificate = $Base64Certificate.Replace('-----END CERTIFICATE-----', '')
-        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
-        $cert.Import([Convert]::FromBase64String($Base64Certificate))
+        $FilePath= [System.IO.Path]::GetTempFileName()
+        $Base64Certificate | Out-File -FilePath $FilePath
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($FilePath)
+        Remove-Item -Path $FilePath
     }
     return $cert
 }

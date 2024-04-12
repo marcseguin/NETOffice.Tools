@@ -1,5 +1,24 @@
 Remove-Module NETOffice.Tools -Force
-Import-Module "C:\Users\marc.seguin\NET.Office GmbH\Intranet - Support\Kunden\NET.Office\PowerShell\Modules\NETOffice.Tools\NETOffice.Tools\NETOffice.Tools.psd1" -Force
+Import-Module "./NETOffice.Tools/NETOffice.Tools.psd1" -Force
 Write-LogDebug "test"
-$a= "-----BEGIN CERTIFICATE-----`n$([Convert]::ToBase64String((Get-item Cert:\CurrentUser\My\A03830B8107B868916833E0FB0D241DDCCF2140F).Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert),[System.Base64FormattingOptions]::InsertLineBreaks))`n-----END CERTIFICATE-----"
+$a= "-----BEGIN CERTIFICATE-----
+MIIDQDCCAiigAwIBAgIQZ7AbmcmuPa1GiL/U1OMhPDANBgkqhkiG9w0BAQsFADAz
+MTEwLwYDVQQDDChORVRPZmZpY2UuU2FtcGxlIHNlbGYtc2lnbmVkIGNlcnRpZmlj
+YXRlMB4XDTI0MDQxMjEzMjM1M1oXDTM0MDQxMjEzMzM0OFowMzExMC8GA1UEAwwo
+TkVUT2ZmaWNlLlNhbXBsZSBzZWxmLXNpZ25lZCBjZXJ0aWZpY2F0ZTCCASIwDQYJ
+KoZIhvcNAQEBBQADggEPADCCAQoCggEBAMm9kcYCityz9ccZBLdEeI4UoYGr0Lbg
+WxBkPWy1zjlCJbRsXQLoMMubtr4DPqS/47O0t/GUfLN5AzJvdehI5vJtu995DZFu
+u2008VJNOKp01Gp37jnmxRspzOFH01p+EJkAz6pHKMTqM4SUthRzioa4/qGkEeL7
+pe8l48nkrBK9Zb2i+j6T42v3xpsIPD6gwtNQMNVZd19FZ7dRsusTYeNQSA0CD28V
+dlazWFZLZB+5GlOTys0XOv/DNbC+EQCto7ZTJ4EB4WOdZe1rRpyQNDIePiEKCk+S
+CjiwACjXtprMKCDQwaCpBfr1tBnP4ZUYAqS6LQiLIEtKF8+rZ9lvrxECAwEAAaNQ
+ME4wDgYDVR0PAQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcD
+ATAdBgNVHQ4EFgQUnYv9ugARY0RUp6x69SGnjyMXyZMwDQYJKoZIhvcNAQELBQAD
+ggEBAGU4qj6ePA1SXrel4r7YKrcLK1m8EPLvPAoAwRxyVkPPj8pjPXc6fVNIE0lv
+3VYL93f9mMreSGGpTFOvRnTc4o+AMwNL1HDx20OWogDYye7eIxOCiKO6rKhbWV2G
+K8GxcS8kcdFVqxV1tJTAbz9FoInBnHu10qEkiVYhHYqDMCRxxyR/5Ziz0x9vCd4q
+zgh2NPwpurcIJKqjinclklhDSfYF2opt48APUd87WmBbF1o+DCr8eOAQGl6op+cl
+eYbGLscTV3BhFxkwqNQ0KV9jWQ2fCMOhYT8v6rUaEg84vZ1eb0krBT8YIi3/OcAf
+Qp2rJI7MLcQqg7LqpaYmwIFzzJg=
+-----END CERTIFICATE-----"
 Read-Certificate -Base64Certificate $a
