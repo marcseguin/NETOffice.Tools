@@ -1,3 +1,4 @@
+Get-PSRepository
 $PackagePath='NETOffice.Tools'
 if (!($env:PSModulePath -match ";$PackagePath")){
     $env:PSModulePath +=";$PackagePath"
@@ -15,9 +16,6 @@ Add-CodeSignature -Filename ".\$PackagePath\Tools.File.ps1"
 Add-CodeSignature -Filename ".\$PackagePath\Tools.Logging.ps1"
 Add-CodeSignature -Filename ".\$PackagePath\Tools.Diagnostics.ps1"
 
+Publish-Module -path "$((Get-item .).FullName)\$PackagePath" -Repository:LocalRepo -NuGetApiKey "PSRepo" -Force
 
-
-
-#Publish-Module -path "$((Get-item .).FullName)\$PackagePath" -Repository:LocalPSRepo -NuGetApiKey 'oy2lvlwpy7z3gunab6uae7t6ogqclmtepgccnmaplw2fh4'
-
-Import-module ".\$PackagePath\NETOffice.Tools.psd1" -Force
+#Import-module ".\$PackagePath\NETOffice.Tools.psd1" -Force
