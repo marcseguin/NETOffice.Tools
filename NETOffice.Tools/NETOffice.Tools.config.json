@@ -5,7 +5,7 @@
    "Logging":{
       "Autostart":false,
       "Configtype":"file",
-      "ConfigFilename":"$modulePath\\log4net.xml",
+      "ConfigFilename":"$ModulePath\\log4net.xml",
       "AliasEnabled": false
    },
    "CodeSigning":
